@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Azeroth: Capitales, Razas y Provincias</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome CDN for UI Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font: Cinzel and Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        warcraft: ['Cinzel', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        alliance: {
+                            light: '#3b82f6',
+                            DEFAULT: '#1d4ed8',
+                            dark: '#1e3a8a',
+                            glow: '#60a5fa'
+                        },
+                        horde: {
+                            light: '#ef4444',
+                            DEFAULT: '#b91c1c',
+                            dark: '#7f1d1d',
+                            glow: '#f87171'
+                        },
+                        gold: {
+                            light: '#fde047',
+                            DEFAULT: '#d4af37',
+                            dark: '#854d0e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, .font-warcraft {
+            font-family: 'Cinzel', serif;
+        }
+
+        /* Gold metallic frame styling */
+        .warcraft-border {
+            border: 2px solid #d4af37;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2), inset 0 0 15px rgba(212, 175, 55, 0.1);
+        }
+
+        .alliance-border {
+            border: 2px solid #2563eb;
+            box-shadow: 0 0 15px rgba(37, 99, 235, 0.3);
+        }
+
+        .horde-border {
+            border: 2px solid #dc2626;
+            box-shadow: 0 0 15px rgba(220, 38, 38, 0.3);
+        }
+
+        /* Province shape hover styling */
+        .province-path {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            stroke-width: 1.5;
+        }
+
+        .province-path:hover {
+            filter: drop-shadow(0px 0px 8px currentColor);
+            stroke-width: 3;
+            transform: scale(1.01);
+        }
+
+        .province-alliance {
+            fill: #1d4ed8;
+            fill-opacity: 0.65;
+            stroke: #60a5fa;
+            color: #60a5fa;
+        }
+
+        .province-alliance:hover {
+            fill-opacity: 0.85;
+            fill: #2563eb;
+        }
+
+        .province-horde {
+            fill: #b91c1c;
+            fill-opacity: 0.65;
+            stroke: #f87171;
+            color: #f87171;
+        }
+
+        .province-horde:hover {
+            fill-opacity: 0.85;
+            fill: #dc2626;
+        }
+
+        /* Capital Marker Animation */
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.25); opacity: 0.7; }
+        }
+
+        .capital-pin {
+            animation: pulseGlow 2.5s infinite ease-in-out;
+            cursor: pointer;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #020617;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #d4af37;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-amber-500 selection:text-black">
+
+    <!-- HEADER -->
+    <header class="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-amber-600/40 shadow-2xl">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap justify-between items-center gap-4">
+            <!-- Brand Title -->
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-700 via-amber-500 to-yellow-200 flex items-center justify-center shadow-lg border border-yellow-300">
+                    <i class="fa-solid font-warcraft text-slate-950 font-black text-xl">A</i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-600">
+                        AZEROTH EXPLORER
+                    </h1>
+                    <p class="text-xs text-amber-200/70 tracking-widest uppercase">Atlas Geopolítico, Capitales y Razas</p>
+                </div>
+            </div>
+
+            <!-- Global Controls & Filters -->
+            <div class="flex items-center flex-wrap gap-2 sm:gap-4">
+                <!-- Faction Filter Buttons -->
+                <div class="bg-slate-900/80 p-1 rounded-lg border border-slate-800 flex items-center text-xs font-semibold">
+                    <button onclick="setFactionFilter('all')" id="btn-filter-all" class="px-3 py-1.5 rounded-md transition-all bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                        Todos
+                    </button>
+                    <button onclick="setFactionFilter('alliance')" id="btn-filter-alliance" class="px-3 py-1.5 rounded-md transition-all text-blue-400 hover:text-blue-200">
+                        <i class="fa-solid fa-[#1e3a8a] fa-shield-halved mr-1"></i> Alianza
+                    </button>
+                    <button onclick="setFactionFilter('horde')" id="btn-filter-horde" class="px-3 py-1.5 rounded-md transition-all text-red-400 hover:text-red-200">
+                        <i class="fa-solid fa-khanda mr-1"></i> Horda
+                    </button>
+                </div>
+
+                <!-- Sound Toggle -->
+                <button onclick="toggleSound()" id="sound-btn" class="p-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-400 hover:text-amber-400 transition" title="Efectos de sonido">
+                    <i class="fa-solid fa-volume-high text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- LEADER AVATARS BAR -->
+    <section class="bg-slate-900/90 border-b border-slate-800 py-3 shadow-inner">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs uppercase font-bold tracking-widest text-amber-400/80 flex items-center gap-1.5">
+                    <i class="fa-solid fa-crown text-amber-500"></i>
+                    Líderes de las Razas (Haz clic para ver la ficha completa)
+                </span>
+                <span class="text-[11px] text-slate-400 hidden sm:inline">Selecciona un icono de jefe para explorar su historia y clase</span>
+            </div>
+
+            <!-- Scrollable Leader Icons -->
+            <div id="leaders-bar" class="flex items-center gap-3 overflow-x-auto pb-2 pt-1 no-scrollbar">
+                <!-- Javascript populates leaders dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8 flex-grow w-full">
+
+        <!-- MAP SECTION WITH MAP / LIST TOGGLE -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+            <!-- Interactive Map Display (8 cols) -->
+            <div class="lg:col-span-8 bg-slate-900/60 rounded-xl p-4 warcraft-border relative overflow-hidden min-h-[520px] flex flex-col justify-between">
+                
+                <!-- Map Header & View Switcher -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3 z-10">
+                    <div>
+                        <h2 class="text-lg font-bold text-amber-300 flex items-center gap-2">
+                            <i class="fa-solid fa-map-location-dot"></i>
+                            Mapa Interactivo de Azeroth
+                        </h2>
+                        <p class="text-xs text-slate-400">Provincias coloreadas por bando: <span class="text-blue-400 font-semibold">Azul (Alianza)</span> y <span class="text-red-400 font-semibold">Rojo (Horda)</span></p>
+                    </div>
+
+                    <!-- Continent Tabs -->
+                    <div class="flex gap-2">
+                        <button onclick="switchContinent('kalimdor')" id="tab-kalimdor" class="px-3 py-1 text-xs rounded-md font-bold border transition border-amber-500/50 bg-amber-500/20 text-amber-200">
+                            Kalimdor
+                        </button>
+                        <button onclick="switchContinent('eastern')" id="tab-eastern" class="px-3 py-1 text-xs rounded-md font-bold border transition border-slate-700 bg-slate-800 text-slate-400 hover:text-white">
+                            Reinos del Este
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SVG Map Container -->
+                <div id="map-viewport" class="relative w-full h-[430px] rounded-lg bg-slate-950/80 border border-slate-800/80 flex items-center justify-center p-2 overflow-hidden">
+                    <!-- SVG Interactive Canvas rendered here -->
+                    <svg id="azeroth-svg" viewBox="0 0 800 600" class="w-full h-full object-contain filter drop-shadow-xl">
+                        <!-- Background texture gradient -->
+                        <defs>
+                            <radialGradient id="ocean-grad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                                <stop offset="0%" stop-color="#0284c7" stop-opacity="0.15" />
+                                <stop offset="100%" stop-color="#020617" stop-opacity="0.9" />
+                            </radialGradient>
+                            <filter id="glow">
+                                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                                <feMerge>
+                                    <feMergeNode in="coloredBlur"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                        </defs>
+                        <rect width="800" height="600" fill="url(#ocean-grad)" rx="8" />
+
+                        <!-- Compass Rose -->
+                        <g transform="translate(740, 70)" opacity="0.3">
+                            <circle cx="0" cy="0" r="30" fill="none" stroke="#d4af37" stroke-width="1"/>
+                            <path d="M 0 -35 L 5 -5 L 35 0 L 5 5 L 0 35 L -5 5 L -35 0 L -5 -5 Z" fill="#d4af37"/>
+                            <text x="0" y="-40" text-anchor="middle" fill="#d4af37" font-size="10" font-weight="bold">N</text>
+                        </g>
+
+                        <!-- Dynamic Paths Group for Provinces -->
+                        <g id="svg-provinces-group">
+                            <!-- Populated dynamically based on chosen continent -->
+                        </g>
+
+                        <!-- Dynamic Group for Capital Markers -->
+                        <g id="svg-capitals-group">
+                            <!-- Populated dynamically -->
+                        </g>
+                    </svg>
+
+                    <!-- Tooltip overlay on hover -->
+                    <div id="map-tooltip" class="absolute hidden pointer-events-none bg-slate-950/95 text-white text-xs p-2.5 rounded-lg border border-amber-500/50 shadow-2xl z-30 max-w-xs transition-opacity duration-200">
+                        <!-- Populated dynamically on hover -->
+                    </div>
+                </div>
+
+                <!-- Map Legend Footnote -->
+                <div class="mt-3 flex flex-wrap items-center justify-between text-xs text-slate-400 px-1 gap-2">
+                    <div class="flex items-center gap-4">
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-blue-600 inline-block border border-blue-300"></span> Provincias Alianza</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-red-600 inline-block border border-red-300"></span> Provincias Horda</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-400 inline-block border border-white animate-pulse"></span> Capitales</span>
+                    </div>
+                    <span class="text-amber-400/80 italic text-[11px]">Haz clic en cualquier provincia o capital para examinar sus datos</span>
+                </div>
+            </div>
+
+            <!-- PROVINCES & CAPITALS PANEL (4 cols) -->
+            <div class="lg:col-span-4 space-y-4">
+                
+                <!-- Search Box -->
+                <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 shadow-md">
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input type="text" id="search-input" onkeyup="handleSearch()" placeholder="Buscar provincia, capital o raza..." 
+                               class="w-full bg-slate-950 border border-slate-700 text-sm text-slate-200 rounded-lg pl-9 pr-3 py-2 focus:outline-none focus:border-amber-500 transition">
+                    </div>
+                </div>
+
+                <!-- Accordion Directory of Zones -->
+                <div class="bg-slate-900/80 rounded-xl p-4 border border-slate-800 shadow-md flex flex-col h-[450px]">
+                    <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-800">
+                        <h3 class="font-bold text-amber-300 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-landmark"></i>
+                            Directorio Territorio & Capitales
+                        </h3>
+                        <span id="zone-counter" class="text-xs bg-slate-800 text-amber-400 px-2 py-0.5 rounded-full font-mono">0 zonas</span>
+                    </div>
+
+                    <!-- Scrollable list of provinces -->
+                    <div id="provinces-list" class="space-y-2 overflow-y-auto pr-1 flex-grow">
+                        <!-- Javascript populates filtered zone list -->
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- CAPITALS QUICK HIGHLIGHT GRID -->
+        <section class="space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2">
+                <div>
+                    <h2 class="text-xl font-bold text-amber-400 flex items-center gap-2">
+                        <i class="fa-solid fa-fort-awesome text-amber-500"></i>
+                        Grandes Capitales de Azeroth
+                    </h2>
+                    <p class="text-xs text-slate-400">Selecciona una capital para desplegar la ficha histórica oficial</p>
+                </div>
+            </div>
+
+            <!-- Grid of Capitals Cards -->
+            <div id="capitals-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <!-- Javascript populates capital cards -->
+            </div>
+        </section>
+
+        <!-- RACES & LEADERS SECTION -->
+        <section class="space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2">
+                <div>
+                    <h2 class="text-xl font-bold text-amber-400 flex items-center gap-2">
+                        <i class="fa-solid fa-users-rays text-amber-500"></i>
+                        Razas y Sus Soberanos
+                    </h2>
+                    <p class="text-xs text-slate-400">Fichas de las razas principales de la Alianza y la Horda</p>
+                </div>
+            </div>
+
+            <!-- Grid of Races -->
+            <div id="races-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Javascript populates races grid -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-950 border-t border-slate-800/80 py-6 mt-12 text-slate-500 text-xs text-center">
+        <div class="max-w-7xl mx-auto px-4 space-y-2">
+            <p class="font-warcraft text-amber-400/80 text-sm">Por la Alianza • Por la Horda • Azeroth por siempre</p>
+            <p>© World of Warcraft, Azeroth y todos sus nombres de personajes y ubicaciones son marcas registradas de Blizzard Entertainment.</p>
+            <p class="text-slate-600">Desarrollado para exploración interactiva geopolítica y lore de fantasía medieval.</p>
+        </div>
+    </footer>
+
+    <!-- UNIVERSAL MODAL FOR CAPITALS, RACES AND PROVINCES -->
+    <div id="modal-backdrop" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden opacity-0 transition-opacity duration-300 flex items-center justify-center p-4">
+        
+        <div id="modal-box" class="bg-slate-900 warcraft-border rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl transform scale-95 transition-transform duration-300 relative border border-amber-500/40">
+            <!-- Modal Close Button -->
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-amber-400 w-8 h-8 rounded-full bg-slate-950/80 border border-slate-700 flex items-center justify-center z-20 transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <!-- Modal Content Injector -->
+            <div id="modal-content" class="p-6">
+                <!-- Dynamic Content injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* -------------------------------------------------------------------------- */
+        /*                                DATA STRUCTURE                              */
+        /* -------------------------------------------------------------------------- */
+
+        const DATA = {
+            factions: {
+                alliance: {
+                    name: 'Alianza',
+                    color: '#1d4ed8',
+                    borderClass: 'alliance-border',
+                    badgeClass: 'bg-blue-900/60 text-blue-300 border-blue-500',
+                    crest: 'fa-shield-halved',
+                    motto: '¡Por la Alianza!'
+                },
+                horde: {
+                    name: 'Horda',
+                    color: '#b91c1c',
+                    borderClass: 'horde-border',
+                    badgeClass: 'bg-red-900/60 text-red-300 border-red-500',
+                    crest: 'fa-khanda',
+                    motto: '¡Por la Horda!'
+                }
+            },
+
+            // Races & Leaders Data
+            races: [
+                {
+                    id: 'human',
+                    name: 'Humanos',
+                    faction: 'alliance',
+                    capitalId: 'stormwind',
+                    leader: 'Anduin Wrynn',
+                    leaderTitle: 'Rey de Ventormenta y Alto Comandante de la Alianza',
+                    leaderClass: 'Sacerdote / Paladín',
+                    avatarUrl: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?auto=format&fit=crop&w=200&q=80',
+                    leaderIconBg: 'from-amber-600 to-yellow-800',
+                    racialTrait: 'Espíritu Humano, Diplomacia, Sálvese Quien Pueda',
+                    raceDescription: 'Los humanos de Ventormenta son una raza resiliente y tenaz. A pesar de haber afrontado guerras destructivas contra orcos y el Azote, se mantienen como el núcleo de la Alianza en Azeroth.',
+                    leaderLore: 'Anduin Llane Wrynn es el joven e idealista Rey de Ventormenta. Hijo del legendario Varian Wrynn, Anduin busca la paz universal a través de la fe en la Luz Sagrada, aunque ha tenido que liderar a la Alianza en devastadores conflictos armados demostrando un valor inquebrantable.',
+                    iconSymbol: 'fa-crown'
+                },
+                {
+                    id: 'dwarf',
+                    name: 'Enanos de Khaz Modan',
+                    faction: 'alliance',
+                    capitalId: 'ironforge',
+                    leader: 'Consejo de los Tres Martillos (Muradin Barbabronce)',
+                    leaderTitle: 'Thane de la Montaña y Líder del Clan Barbabronce',
+                    leaderClass: 'Guerrero / Thane de la Montaña',
+                    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+                    leaderIconBg: 'from-slate-600 to-amber-900',
+                    racialTrait: 'Forma de Piedra, Explorador, Resistencia a las Sombras',
+                    raceDescription: 'Descendientes de los Terrestres creados por los Titanes, los enanos son maestros de la minería, la herrería y la arqueología. Habitan la imponente fortaleza montañosa de Forjainfernal.',
+                    leaderLore: 'Muradin Barbabronce, hermano de Magni, es un héroe legendario que entrenó al mismísimo Arthas Menethil. Actualmente gobierna Forjainfernal junto a Falstad Martillo Salvaje y Moira Thaurissan en el Consejo de los Tres Martillos.',
+                    iconSymbol: 'fa-hammer'
+                },
+                {
+                    id: 'nightelf',
+                    name: 'Elfos de la Noche',
+                    faction: 'alliance',
+                    capitalId: 'darnassus',
+                    leader: 'Tyrande Susurravientos',
+                    leaderTitle: 'Sumisa Sacerdotisa de Elune y Líder de las Centinelas',
+                    leaderClass: 'Sacerdotisa de Elune / Cazadora',
+                    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+                    leaderIconBg: 'from-purple-800 to-indigo-950',
+                    racialTrait: 'Fusión con las Sombras, Prestaza, Espíritu de Presteza',
+                    raceDescription: 'Una de las razas más antiguas de Azeroth, conectada íntimamente con la naturaleza y la diosa de la luna Elune. Han protegido el continente de Kalimdor durante milenios.',
+                    leaderLore: 'Tyrande Susurravientos ha liderado a los Kaldorei durante más de diez mil años. Junto a su compañero Malfurion Tempestira, ha defendido Azeroth de la Legión Ardiente. Tras la quema de Teldrassil, asumió la temible forma del Guerrera de la Noche para clamar venganza.',
+                    iconSymbol: 'fa-moon'
+                },
+                {
+                    id: 'draenei',
+                    name: 'Draenei',
+                    faction: 'alliance',
+                    capitalId: 'exodar',
+                    leader: 'Profeta Velen',
+                    leaderTitle: 'Soberano de los Exiliados de Argus',
+                    leaderClass: 'Sacerdote / Profeta de la Luz',
+                    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+                    leaderIconBg: 'from-blue-700 to-cyan-900',
+                    racialTrait: 'Ofrenda de los Naaru, Tallador de Gemas, Presencia Heroica',
+                    raceDescription: 'Originalmente eredar del planeta Argus, los Draenei huyeron de la corrupción demoníaca guiados por los Naaru. Estrellaron su nave, El Exodar, en las costas de Azeroth y se unieron a la Alianza.',
+                    leaderLore: 'El Profeta Velen tiene más de 25,000 años de edad. Dotado con el don de la visión profética concedido por la Luz, ha guiado a su pueblo a través del cosmos huyendo de su antiguo hermano corrupto, Kil\'jaeden.',
+                    iconSymbol: 'fa-sun'
+                },
+                {
+                    id: 'orc',
+                    name: 'Orcos',
+                    faction: 'horde',
+                    capitalId: 'orgrimmar',
+                    leader: 'Thrall (Go\'el)',
+                    leaderTitle: 'Antiguo Warchief y Chamán del Círculo de la Tierra',
+                    leaderClass: 'Chamán',
+                    avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80',
+                    leaderIconBg: 'from-emerald-800 to-slate-900',
+                    racialTrait: 'Furia Sangrienta, Ordenar, Firmeza',
+                    raceDescription: 'Nativos del planeta Draenor, los orcos fueron engañados para servir a la Legión Ardiente. Bajo el liderazgo de Thrall, rompieron su servidumbre demoníaca y fundaron la nación de Durotar en Azeroth.',
+                    leaderLore: 'Thrall, nacido como Go\'el, liberó a los orcos de los campos de internamiento humanos y fundó la Horda moderna basada en el honor y el chamanismo. Es uno de los chamanes más poderosos que jamás hayan pisado el mundo.',
+                    iconSymbol: 'fa-axe'
+                },
+                {
+                    id: 'tauren',
+                    name: 'Tauren de las Mulgore',
+                    faction: 'horde',
+                    capitalId: 'thunderbluff',
+                    leader: 'Baine Pezuña de Sangre',
+                    leaderTitle: 'Gran Jefe de las Tribus Tauren',
+                    leaderClass: 'Guerrero / Jefe Tribal',
+                    avatarUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=200&q=80',
+                    leaderIconBg: 'from-amber-900 to-amber-950',
+                    racialTrait: 'Pisotón Bélico, Robustez, Cultivador',
+                    raceDescription: 'Pacíficos nómadas en armonía con la Madre Tierra. Los tauren son criaturas imponentes pero de espíritu noble que pactaron alianza con los orcos tras ser salvados de los centauros.',
+                    leaderLore: 'Hijo del venerado Cairne Pezuña de Sangre, Baine asumió el liderazgo tras la trágica muerte de su padre. Es conocido por su sabiduría, compasión y firme defensa del honor en la Horda.',
+                    iconSymbol: 'fa-tree'
+                },
+                {
+                    id: 'forsaken',
+                    name: 'Renegados (No Muertos)',
+                    faction: 'horde',
+                    capitalId: 'undercity',
+                    leader: 'Sylvanas Brisaveloz / Consejo Desolado',
+                    leaderTitle: 'Antigua Reina de los Renegados',
+                    leaderClass: 'Cazadora de Sombras / Forestal Oscura',
+                    avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80',
+                    leaderIconBg: 'from-slate-800 to-emerald-950',
+                    racialTrait: 'Voluntad de los Renegados, Canibalismo, Toque de la Tumba',
+                    raceDescription: 'No muertos librepensadores que se liberaron del control mental del Rey Exánime. Han reclamado las ruinas de Lordaeron bajo el subsuelo en Entrañas.',
+                    leaderLore: 'Sylvanas Brisaveloz era la General Forestal de Lunargenta antes de ser asesinada y convertida en alma en pena por Arthas. Liberó a su pueblo y gobernó a los Renegados con puño de hierro y astucia militar sin igual.',
+                    iconSymbol: 'fa-skull'
+                },
+                {
+                    id: 'bloodelf',
+                    name: 'Elfos de Sangre (Sin\'dorei)',
+                    faction: 'horde',
+                    capitalId: 'silvermoon',
+                    leader: 'Lor\'themar Theron',
+                    leaderTitle: 'Lord Regente de Quel\'Thalas',
+                    leaderClass: 'Cazador / Forestal',
+                    avatarUrl: 'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?auto=format&fit=crop&w=200&q=80',
+                    leaderIconBg: 'from-red-800 to-amber-900',
+                    racialTrait: 'Torrente Arcano, Afinidad con la Magia',
+                    raceDescription: 'Supervivientes del reino de Quel\'Thalas tras la masacre del Azote. Rebautizados como Elfos de Sangre en honor a los caídos, reconstruyeron su gloriosa capital con la energía del Fuente del Sol.',
+                    leaderLore: 'Lor\'themar Theron asumió la regencia de Quel\'Thalas tras la traición del Príncipe Kael\'thas Sunstrider. Veterano de mil batallas y formidable estratega, ha guiado a su pueblo hacia la prosperidad y estabilidad.',
+                    iconSymbol: 'fa-wand-magic-sparkles'
+                }
+            ],
+
+            // Capitals Data
+            capitals: [
+                {
+                    id: 'stormwind',
+                    name: 'Ventormenta (Stormwind)',
+                    faction: 'alliance',
+                    race: 'Humanos',
+                    provinceId: 'elwynn',
+                    provinceName: 'Bosque de Elwynn',
+                    continent: 'eastern',
+                    leader: 'Rey Anduin Wrynn',
+                    coordX: 62,
+                    coordY: 65,
+                    imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80',
+                    lore: 'Ventormenta es la joya de los reinos humanos y bastión supremo de la Alianza en Azeroth. Reconstruida tras su total destrucción en la Primera Guerra a manos de la Horda orca, la ciudad cuenta con imponentes murallas de piedra, la impresionante Catedral de la Luz, el Castillo de Ventormenta y el gran puerto militar. Es el centro económico y político dominante de los Reinos del Este.'
+                },
+                {
+                    id: 'ironforge',
+                    name: 'Forjainfernal (Ironforge)',
+                    faction: 'alliance',
+                    race: 'Enanos / Gnomos',
+                    provinceId: 'dunmorogh',
+                    provinceName: 'Dun Morogh',
+                    continent: 'eastern',
+                    leader: 'Consejo de los Tres Martillos',
+                    coordX: 68,
+                    coordY: 48,
+                    imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80',
+                    lore: 'Tallada en las entrañas de la montaña nevada de Khaz Modan, Forjainfernal es una obra maestra imperecedera de ingeniería enana. En su centro arde la Gran Forja, alimentada por el corazón térmico de la tierra. La ciudad nunca ha sido conquistada por fuerzas enemigas a lo largo de su historia debido a sus murallas inexpugnables.'
+                },
+                {
+                    id: 'darnassus',
+                    name: 'Darnassus',
+                    faction: 'alliance',
+                    race: 'Elfos de la Noche',
+                    provinceId: 'teldrassil',
+                    provinceName: 'Teldrassil',
+                    continent: 'kalimdor',
+                    leader: 'Tyrande Susurravientos & Malfurion',
+                    coordX: 30,
+                    coordY: 18,
+                    imageUrl: 'https://images.unsplash.com/photo-1511497584788-8767610419ea?auto=format&fit=crop&w=600&q=80',
+                    lore: 'Ubicada sobre la copa del Gran Árbol del Mundo Teldrassil en el norte de Kalimdor, Darnassus era la santuaria capital de los Kaldorei. Con sus boscosas avenidas, el Templo de la Luna y arboledas sagradas, simbolizaba la conexión mística con la naturaleza. Fue trágicamente destruida en el incendio provocado por Sylvanas Brisaveloz durante la Guerra de las Espinas.'
+                },
+                {
+                    id: 'exodar',
+                    name: 'El Exodar',
+                    faction: 'alliance',
+                    race: 'Draenei',
+                    provinceId: 'azuremyst',
+                    provinceName: 'Isla Bruma Azur',
+                    continent: 'kalimdor',
+                    leader: 'Profeta Velen',
+                    coordX: 18,
+                    coordY: 28,
+                    imageUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=600&q=80',
+                    lore: 'El Exodar es en realidad una estructura satélite de la fortaleza dimensional Tempest Keep. Tras estrellarse violentamente en las costas del norte de Kalimdor, los eruditos Draenei repararon el fuselaje cristalino convirtiéndolo en su próspera capital electrificada con energía sagrada y tecnología Naaru.'
+                },
+                {
+                    id: 'orgrimmar',
+                    name: 'Orgrimmar',
+                    faction: 'horde',
+                    race: 'Orcos / Trolls Lanza Negra',
+                    provinceId: 'durotar',
+                    provinceName: 'Durotar',
+                    continent: 'kalimdor',
+                    leader: 'Consejo de la Horda (Thrall / Rokhan)',
+                    coordX: 62,
+                    coordY: 48,
+                    imageUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=600&q=80',
+                    lore: 'Fundada por Thrall en honor al gran Warchief Orgrim Colmillosauro, Orgrimmar es la imponente fortaleza de cañones de piedra roja y estacas de hierro en Durotar. Es el corazón latente de la Horda, donde conviven orcos, trolls, goblins y aliados. Un bastión impenetrable protegido por puertas de hierro y el Fuerte Grommash.'
+                },
+                {
+                    id: 'thunderbluff',
+                    name: 'Cima del Trueno (Thunder Bluff)',
+                    faction: 'horde',
+                    race: 'Tauren',
+                    provinceId: 'mulgore',
+                    provinceName: 'Mulgore',
+                    continent: 'kalimdor',
+                    leader: 'Baine Pezuña de Sangre',
+                    coordX: 42,
+                    coordY: 58,
+                    imageUrl: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=80',
+                    lore: 'Erguida sobre altos mesetas que dominan las praderas doradas de Mulgore, Cima del Trueno es el hogar espiritual de los Tauren. Conectada por puentes de cuerda colgantes y totems ancestrales, esta metrópoli serena ofrece refugio a los chamanes, cazadores y druidas de la Madre Tierra.'
+                },
+                {
+                    id: 'undercity',
+                    name: 'Entrañas (Undercity)',
+                    faction: 'horde',
+                    race: 'Renegados (No Muertos)',
+                    provinceId: 'tirisfal',
+                    provinceName: 'Claros de Tirisfal',
+                    continent: 'eastern',
+                    leader: 'Sylvanas Brisaveloz / Lilian Voss',
+                    coordX: 52,
+                    coordY: 28,
+                    imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80',
+                    lore: 'Construida bajo las ruinas destruidas de la antigua capital humana de Lordaeron, Entrañas es un laberinto subterráneo de alquimia, peste y arquitectura gótica. Durante años sirvió como baluarte de Sylvanas y los Renegados para desarrollar sus pociones y asegurar la supervivencia de la no-muerte.'
+                },
+                {
+                    id: 'silvermoon',
+                    name: 'Ciudad de Lunargenta (Silvermoon)',
+                    faction: 'horde',
+                    race: 'Elfos de Sangre',
+                    provinceId: 'eversong',
+                    provinceName: 'Bosque Canto Eterno',
+                    continent: 'eastern',
+                    leader: 'Lor\'themar Theron',
+                    coordX: 75,
+                    coordY: 15,
+                    imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80',
+                    lore: 'La deslumbrante capital de Quel\'Thalas resplandece con torres agujeadas de oro y carmesí, impulsadas por la magia arcana de la Fuente del Sol. Pese a que la mitad occidental de la ciudad permanece reducida a escombros por el paso de Arthas, la mitad oriental es uno de los monumentos más lujosos de Azeroth.'
+                }
+            ],
+
+            // Provinces (Zones) Colored STRICTLY Red or Blue based on Faction!
+            provinces: [
+                // Kalimdor Provinces
+                { id: 'durotar', name: 'Durotar', faction: 'horde', continent: 'kalimdor', capitalId: 'orgrimmar', pathD: 'M 550 250 L 650 240 L 680 320 L 590 330 L 550 280 Z' },
+                { id: 'mulgore', name: 'Mulgore', faction: 'horde', continent: 'kalimdor', capitalId: 'thunderbluff', pathD: 'M 350 320 L 460 310 L 470 390 L 370 410 Z' },
+                { id: 'barrens', name: 'Los Baldíos', faction: 'horde', continent: 'kalimdor', capitalId: null, pathD: 'M 460 250 L 550 250 L 580 380 L 470 390 Z' },
+                { id: 'ashenvale', name: 'Valle Frescorroble (Ashenvale)', faction: 'alliance', continent: 'kalimdor', capitalId: null, pathD: 'M 350 200 L 550 190 L 550 250 L 350 240 Z' },
+                { id: 'teldrassil', name: 'Teldrassil', faction: 'alliance', continent: 'kalimdor', capitalId: 'darnassus', pathD: 'M 220 80 A 40 40 0 1 1 290 120 Z' },
+                { id: 'azuremyst', name: 'Isla Bruma Azur', faction: 'alliance', continent: 'kalimdor', capitalId: 'exodar', pathD: 'M 120 140 L 190 130 L 180 200 L 110 190 Z' },
+                { id: 'darkshore', name: 'Costa Oscura', faction: 'alliance', continent: 'kalimdor', capitalId: null, pathD: 'M 300 130 L 360 130 L 350 220 L 290 200 Z' },
+                { id: 'tanaris', name: 'Tanaris', faction: 'horde', continent: 'kalimdor', capitalId: null, pathD: 'M 480 430 L 620 420 L 600 530 L 470 510 Z' },
+                { id: 'feralas', name: 'Feralas', faction: 'alliance', continent: 'kalimdor', capitalId: null, pathD: 'M 280 380 L 370 390 L 360 480 L 260 460 Z' },
+
+                // Eastern Kingdoms Provinces
+                { id: 'elwynn', name: 'Bosque de Elwynn', faction: 'alliance', continent: 'eastern', capitalId: 'stormwind', pathD: 'M 460 360 L 580 350 L 570 420 L 450 410 Z' },
+                { id: 'dunmorogh', name: 'Dun Morogh', faction: 'alliance', continent: 'eastern', capitalId: 'ironforge', pathD: 'M 480 260 L 620 250 L 610 320 L 470 320 Z' },
+                { id: 'westfall', name: 'Páramos de Poniente', faction: 'alliance', continent: 'eastern', capitalId: null, pathD: 'M 370 370 L 460 360 L 450 440 L 360 430 Z' },
+                { id: 'tirisfal', name: 'Claros de Tirisfal', faction: 'horde', continent: 'eastern', capitalId: 'undercity', pathD: 'M 380 130 L 500 120 L 490 180 L 370 180 Z' },
+                { id: 'eversong', name: 'Bosque Canto Eterno', faction: 'horde', continent: 'eastern', capitalId: 'silvermoon', pathD: 'M 580 40 L 680 30 L 670 100 L 570 100 Z' },
+                { id: 'ghostlands', name: 'Tierras Fantasma', faction: 'horde', continent: 'eastern', capitalId: null, pathD: 'M 570 100 L 670 100 L 660 160 L 560 150 Z' },
+                { id: 'hillsbrad', name: 'Laderas de Trabalomas', faction: 'horde', continent: 'eastern', capitalId: null, pathD: 'M 420 180 L 540 180 L 530 240 L 410 230 Z' },
+                { id: 'duskwood', name: 'Bosque de Crepúsculo', faction: 'alliance', continent: 'eastern', capitalId: null, pathD: 'M 460 420 L 560 420 L 550 480 L 450 470 Z' }
+            ]
+        };
+
+        /* -------------------------------------------------------------------------- */
+        /*                               APP STATE                                    */
+        /* -------------------------------------------------------------------------- */
+
+        let state = {
+            currentContinent: 'kalimdor',
+            factionFilter: 'all', // 'all', 'alliance', 'horde'
+            searchQuery: '',
+            soundEnabled: true
+        };
+
+        /* Web Audio API Synthesizer for Fantasy Sound Effects */
+        let audioCtx = null;
+
+        function playSoundEffect(type) {
+            if (!state.soundEnabled) return;
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.08);
+                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.08);
+                } else if (type === 'hover') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.04);
+                }
+            } catch(e) {
+                // Audio Context not allowed or supported
+            }
+        }
+
+        function toggleSound() {
+            state.soundEnabled = !state.soundEnabled;
+            const btn = document.getElementById('sound-btn');
+            if (state.soundEnabled) {
+                btn.innerHTML = `<i class="fa-solid fa-volume-high text-sm text-amber-400"></i>`;
+                playSoundEffect('click');
+            } else {
+                btn.innerHTML = `<i class="fa-solid fa-volume-xmark text-sm text-slate-500"></i>`;
+            }
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /*                            INITIALIZATION                                  */
+        /* -------------------------------------------------------------------------- */
+
+        window.onload = function() {
+            renderLeadersBar();
+            renderProvincesList();
+            renderCapitalsGrid();
+            renderRacesGrid();
+            renderMap();
+        };
+
+        /* -------------------------------------------------------------------------- */
+        /*                              RENDER FUNCTIONS                              */
+        /* -------------------------------------------------------------------------- */
+
+        function renderLeadersBar() {
+            const bar = document.getElementById('leaders-bar');
+            bar.innerHTML = '';
+
+            DATA.races.forEach(race => {
+                const factionObj = DATA.factions[race.faction];
+                const avatarBtn = document.createElement('button');
+                avatarBtn.className = `group flex-shrink-0 flex items-center gap-2 p-1.5 pr-3 rounded-full bg-slate-950 border border-slate-800 hover:border-amber-400 transition-all shadow-md transform hover:-translate-y-0.5`;
+                avatarBtn.onclick = () => {
+                    playSoundEffect('click');
+                    openRaceLeaderModal(race.id);
+                };
+
+                avatarBtn.innerHTML = `
+                    <div class="relative">
+                        <img src="${race.avatarUrl}" alt="${race.leader}" class="w-9 h-9 rounded-full object-cover border-2 ${race.faction === 'alliance' ? 'border-blue-500' : 'border-red-500'}">
+                        <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full ${race.faction === 'alliance' ? 'bg-blue-600' : 'bg-red-600'} text-white text-[9px] flex items-center justify-center border border-slate-900">
+                            <i class="fa-solid ${factionObj.crest}"></i>
+                        </span>
+                    </div>
+                    <div class="text-left">
+                        <p class="text-xs font-bold text-slate-200 group-hover:text-amber-300 transition line-clamp-1">${race.leader.split(' ')[0]}</p>
+                        <p class="text-[10px] text-slate-400">${race.name.split(' ')[0]}</p>
+                    </div>
+                `;
+                bar.appendChild(avatarBtn);
+            });
+        }
+
+        function switchContinent(continent) {
+            playSoundEffect('click');
+            state.currentContinent = continent;
+            
+            document.getElementById('tab-kalimdor').className = continent === 'kalimdor' 
+                ? 'px-3 py-1 text-xs rounded-md font-bold border transition border-amber-500/50 bg-amber-500/20 text-amber-200'
+                : 'px-3 py-1 text-xs rounded-md font-bold border transition border-slate-700 bg-slate-800 text-slate-400 hover:text-white';
+            
+            document.getElementById('tab-eastern').className = continent === 'eastern' 
+                ? 'px-3 py-1 text-xs rounded-md font-bold border transition border-amber-500/50 bg-amber-500/20 text-amber-200'
+                : 'px-3 py-1 text-xs rounded-md font-bold border transition border-slate-700 bg-slate-800 text-slate-400 hover:text-white';
+
+            renderMap();
+            renderProvincesList();
+        }
+
+        function renderMap() {
+            const provincesGroup = document.getElementById('svg-provinces-group');
+            const capitalsGroup = document.getElementById('svg-capitals-group');
+            provincesGroup.innerHTML = '';
+            capitalsGroup.innerHTML = '';
+
+            const filteredProvinces = DATA.provinces.filter(p => p.continent === state.currentContinent && (state.factionFilter === 'all' || p.faction === state.factionFilter));
+            const filteredCapitals = DATA.capitals.filter(c => c.continent === state.currentContinent && (state.factionFilter === 'all' || c.faction === state.factionFilter));
+
+            // Render SVG Paths for Provinces
+            filteredProvinces.forEach(prov => {
+                const isAlliance = prov.faction === 'alliance';
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', prov.pathD);
+                path.setAttribute('class', `province-path ${isAlliance ? 'province-alliance' : 'province-horde'}`);
+                
+                path.onmouseenter = (e) => showTooltip(e, prov);
+                path.onmousemove = (e) => moveTooltip(e);
+                path.onmouseleave = () => hideTooltip();
+                path.onclick = () => {
+                    playSoundEffect('click');
+                    openProvinceModal(prov.id);
+                };
+
+                provincesGroup.appendChild(path);
+
+                // Province Label Text inside path center
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                const bbox = getApproxBBox(prov.pathD);
+                text.setAttribute('x', bbox.x);
+                text.setAttribute('y', bbox.y);
+                text.setAttribute('fill', '#ffffff');
+                text.setAttribute('font-size', '11');
+                text.setAttribute('font-weight', 'bold');
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('pointer-events', 'none');
+                text.setAttribute('opacity', '0.85');
+                text.textContent = prov.name;
+                provincesGroup.appendChild(text);
+            });
+
+            // Render SVG Markers for Capitals
+            filteredCapitals.forEach(cap => {
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                g.setAttribute('class', 'capital-pin');
+                g.onclick = (e) => {
+                    e.stopPropagation();
+                    playSoundEffect('click');
+                    openCapitalModal(cap.id);
+                };
+
+                const circleGlow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circleGlow.setAttribute('cx', cap.coordX * 8);
+                circleGlow.setAttribute('cy', cap.coordY * 6);
+                circleGlow.setAttribute('r', '12');
+                circleGlow.setAttribute('fill', cap.faction === 'alliance' ? '#3b82f6' : '#ef4444');
+                circleGlow.setAttribute('fill-opacity', '0.4');
+                circleGlow.setAttribute('filter', 'url(#glow)');
+
+                const circleCore = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circleCore.setAttribute('cx', cap.coordX * 8);
+                circleCore.setAttribute('cy', cap.coordY * 6);
+                circleCore.setAttribute('r', '6');
+                circleCore.setAttribute('fill', '#fde047');
+                circleCore.setAttribute('stroke', cap.faction === 'alliance' ? '#1d4ed8' : '#b91c1c');
+                circleCore.setAttribute('stroke-width', '2');
+
+                g.appendChild(circleGlow);
+                g.appendChild(circleCore);
+
+                // Capital Label Text
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', cap.coordX * 8);
+                text.setAttribute('y', cap.coordY * 6 - 10);
+                text.setAttribute('fill', '#fde047');
+                text.setAttribute('font-size', '10');
+                text.setAttribute('font-weight', 'bold');
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('pointer-events', 'none');
+                text.textContent = `★ ${cap.name.split(' ')[0]}`;
+
+                g.appendChild(text);
+                capitalsGroup.appendChild(g);
+            });
+        }
+
+        // Helper to center label text inside path bbox
+        function getApproxBBox(pathD) {
+            const matches = pathD.match(/[-+]?[0-9]*\.?[0-9]+/g);
+            if (!matches) return { x: 400, y: 300 };
+            const coords = matches.map(Number);
+            let sumX = 0, sumY = 0, count = 0;
+            for (let i = 0; i < coords.length; i += 2) {
+                sumX += coords[i];
+                sumY += coords[i+1] || 0;
+                count++;
+            }
+            return { x: sumX / count, y: sumY / count };
+        }
+
+        /* Tooltip behavior */
+        const tooltip = document.getElementById('map-tooltip');
+
+        function showTooltip(evt, prov) {
+            playSoundEffect('hover');
+            const cap = DATA.capitals.find(c => c.id === prov.capitalId);
+            tooltip.classList.remove('hidden');
+            tooltip.innerHTML = `
+                <div class="font-bold flex items-center justify-between gap-2 border-b border-slate-700 pb-1 mb-1">
+                    <span>${prov.name}</span>
+                    <span class="text-[10px] uppercase px-1.5 py-0.5 rounded font-bold ${prov.faction === 'alliance' ? 'bg-blue-900/80 text-blue-300' : 'bg-red-900/80 text-red-300'}">
+                        ${prov.faction === 'alliance' ? 'Alianza' : 'Horda'}
+                    </span>
+                </div>
+                <div class="text-[11px] text-slate-300">
+                    <p><strong class="text-amber-400">Capital:</strong> ${cap ? cap.name : 'Ninguna'}</p>
+                    <p class="mt-0.5 text-slate-400 italic">Haz clic para ver detalles geopolíticos</p>
+                </div>
+            `;
+            moveTooltip(evt);
+        }
+
+        function moveTooltip(evt) {
+            const rect = document.getElementById('map-viewport').getBoundingClientRect();
+            const x = evt.clientX - rect.left + 15;
+            const y = evt.clientY - rect.top + 15;
+            tooltip.style.left = `${x}px`;
+            tooltip.style.top = `${y}px`;
+        }
+
+        function hideTooltip() {
+            tooltip.classList.add('hidden');
+        }
+
+        function renderProvincesList() {
+            const container = document.getElementById('provinces-list');
+            container.innerHTML = '';
+
+            const searchLower = state.searchQuery.toLowerCase();
+
+            const filtered = DATA.provinces.filter(p => {
+                const matchesFaction = state.factionFilter === 'all' || p.faction === state.factionFilter;
+                const matchesSearch = p.name.toLowerCase().includes(searchLower) || 
+                                     (p.capitalId && DATA.capitals.find(c => c.id === p.capitalId)?.name.toLowerCase().includes(searchLower));
+                return matchesFaction && matchesSearch;
+            });
+
+            document.getElementById('zone-counter').textContent = `${filtered.length} zonas`;
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="text-center py-6 text-slate-500 text-xs italic">No se encontraron provincias con ese criterio</div>`;
+                return;
+            }
+
+            filtered.forEach(prov => {
+                const isAlliance = prov.faction === 'alliance';
+                const cap = DATA.capitals.find(c => c.id === prov.capitalId);
+
+                const item = document.createElement('div');
+                item.className = `p-2.5 rounded-lg bg-slate-950/60 border ${isAlliance ? 'border-blue-900/50 hover:border-blue-500' : 'border-red-900/50 hover:border-red-500'} transition cursor-pointer flex justify-between items-center group`;
+                item.onclick = () => {
+                    playSoundEffect('click');
+                    if (prov.continent !== state.currentContinent) {
+                        switchContinent(prov.continent);
+                    }
+                    openProvinceModal(prov.id);
+                };
+
+                item.innerHTML = `
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full ${isAlliance ? 'bg-blue-500' : 'bg-red-500'} shadow"></span>
+                            <span class="text-xs font-bold text-slate-200 group-hover:text-amber-300 transition">${prov.name}</span>
+                        </div>
+                        <span class="text-[11px] text-slate-400 pl-4 block">
+                            ${cap ? '🏛️ ' + cap.name : '🌲 Territorio Silvestre'}
+                        </span>
+                    </div>
+                    <span class="text-[10px] px-2 py-0.5 rounded uppercase font-bold ${isAlliance ? 'bg-blue-950 text-blue-300 border border-blue-800' : 'bg-red-950 text-red-300 border border-red-800'}">
+                        ${isAlliance ? 'Alianza' : 'Horda'}
+                    </span>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function renderCapitalsGrid() {
+            const container = document.getElementById('capitals-grid');
+            container.innerHTML = '';
+
+            const filtered = DATA.capitals.filter(c => {
+                const matchesFaction = state.factionFilter === 'all' || c.faction === state.factionFilter;
+                const matchesSearch = c.name.toLowerCase().includes(state.searchQuery.toLowerCase()) ||
+                                      c.race.toLowerCase().includes(state.searchQuery.toLowerCase()) ||
+                                      c.leader.toLowerCase().includes(state.searchQuery.toLowerCase());
+                return matchesFaction && matchesSearch;
+            });
+
+            filtered.forEach(cap => {
+                const isAlliance = cap.faction === 'alliance';
+                const card = document.createElement('div');
+                card.className = `bg-slate-900/80 rounded-xl overflow-hidden border ${isAlliance ? 'border-blue-900/60 hover:border-blue-500' : 'border-red-900/60 hover:border-red-500'} transition-all transform hover:-translate-y-1 shadow-lg group cursor-pointer flex flex-col justify-between`;
+                card.onclick = () => {
+                    playSoundEffect('click');
+                    openCapitalModal(cap.id);
+                };
+
+                card.innerHTML = `
+                    <div>
+                        <div class="relative h-32 overflow-hidden bg-slate-950">
+                            <img src="${cap.imageUrl}" alt="${cap.name}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+                            <span class="absolute top-2 right-2 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${isAlliance ? 'bg-blue-900/90 text-blue-200 border border-blue-500' : 'bg-red-900/90 text-red-200 border border-red-500'}">
+                                ${isAlliance ? 'Alianza' : 'Horda'}
+                            </span>
+                        </div>
+                        <div class="p-4 space-y-2">
+                            <h3 class="font-bold text-amber-300 text-base group-hover:text-yellow-200 transition">${cap.name}</h3>
+                            <div class="space-y-1 text-xs text-slate-300">
+                                <p><strong class="text-slate-400">Raza:</strong> ${cap.race}</p>
+                                <p><strong class="text-slate-400">Jefe:</strong> ${cap.leader}</p>
+                                <p><strong class="text-slate-400">Provincia:</strong> ${cap.provinceName}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-4 pb-4 pt-1 border-t border-slate-800/80 flex justify-between items-center text-xs text-amber-400 font-semibold group-hover:text-amber-300">
+                        <span>Ver Ficha Oficial</span>
+                        <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition"></i>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderRacesGrid() {
+            const container = document.getElementById('races-grid');
+            container.innerHTML = '';
+
+            const filtered = DATA.races.filter(r => {
+                const matchesFaction = state.factionFilter === 'all' || r.faction === state.factionFilter;
+                const matchesSearch = r.name.toLowerCase().includes(state.searchQuery.toLowerCase()) ||
+                                      r.leader.toLowerCase().includes(state.searchQuery.toLowerCase()) ||
+                                      r.leaderClass.toLowerCase().includes(state.searchQuery.toLowerCase());
+                return matchesFaction && matchesSearch;
+            });
+
+            filtered.forEach(race => {
+                const isAlliance = race.faction === 'alliance';
+                const card = document.createElement('div');
+                card.className = `bg-slate-900/90 rounded-xl p-4 border ${isAlliance ? 'border-blue-900/60 hover:border-blue-400' : 'border-red-900/60 hover:border-red-400'} transition transform hover:-translate-y-1 shadow-lg flex flex-col justify-between cursor-pointer group`;
+                card.onclick = () => {
+                    playSoundEffect('click');
+                    openRaceLeaderModal(race.id);
+                };
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center gap-3 mb-3 pb-2 border-b border-slate-800">
+                            <img src="${race.avatarUrl}" alt="${race.leader}" class="w-12 h-12 rounded-full object-cover border-2 ${isAlliance ? 'border-blue-500' : 'border-red-500'}">
+                            <div>
+                                <h3 class="font-bold text-amber-300 text-sm group-hover:text-yellow-200 transition">${race.name}</h3>
+                                <p class="text-xs text-slate-400"><i class="fa-solid fa-user-shield text-amber-500/80 mr-1"></i>${race.leader}</p>
+                            </div>
+                        </div>
+                        <div class="space-y-1.5 text-xs text-slate-300 mb-3">
+                            <p><span class="text-slate-400 font-semibold">Clase del Jefe:</span> <span class="text-amber-200">${race.leaderClass}</span></p>
+                            <p class="line-clamp-2 text-slate-400 italic">${race.raceDescription}</p>
+                        </div>
+                    </div>
+                    <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs font-bold text-amber-400">
+                        <span>Ficha Raza y Líder</span>
+                        <i class="fa-solid fa-id-card"></i>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /*                           FILTERS & SEARCH                                 */
+        /* -------------------------------------------------------------------------- */
+
+        function setFactionFilter(faction) {
+            playSoundEffect('click');
+            state.factionFilter = faction;
+
+            ['all', 'alliance', 'horde'].forEach(f => {
+                const btn = document.getElementById(`btn-filter-${f}`);
+                if (f === faction) {
+                    btn.className = `px-3 py-1.5 rounded-md transition-all bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold`;
+                } else {
+                    btn.className = `px-3 py-1.5 rounded-md transition-all text-slate-400 hover:text-white`;
+                }
+            });
+
+            renderMap();
+            renderProvincesList();
+            renderCapitalsGrid();
+            renderRacesGrid();
+        }
+
+        function handleSearch() {
+            state.searchQuery = document.getElementById('search-input').value;
+            renderProvincesList();
+            renderCapitalsGrid();
+            renderRacesGrid();
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /*                             MODAL SYSTEM                                   */
+        /* -------------------------------------------------------------------------- */
+
+        function openCapitalModal(capitalId) {
+            const cap = DATA.capitals.find(c => c.id === capitalId);
+            if (!cap) return;
+
+            const isAlliance = cap.faction === 'alliance';
+            const factionObj = DATA.factions[cap.faction];
+            const raceObj = DATA.races.find(r => r.capitalId === cap.id);
+
+            const content = document.getElementById('modal-content');
+            content.innerHTML = `
+                <!-- Capital Banner -->
+                <div class="relative h-48 rounded-xl overflow-hidden mb-4 border ${isAlliance ? 'border-blue-500/50' : 'border-red-500/50'}">
+                    <img src="${cap.imageUrl}" alt="${cap.name}" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent"></div>
+                    <div class="absolute bottom-3 left-4 right-4 flex justify-between items-end">
+                        <div>
+                            <span class="text-xs uppercase tracking-widest px-2.5 py-1 rounded font-bold ${factionObj.badgeClass}">
+                                <i class="fa-solid ${factionObj.crest} mr-1"></i> Capital de la ${factionObj.name}
+                            </span>
+                            <h2 class="text-2xl font-bold text-amber-300 mt-1">${cap.name}</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800">
+                        <span class="text-xs text-slate-400 font-semibold block">Raza Fundadora / Habitan:</span>
+                        <span class="text-sm font-bold text-slate-200">${cap.race}</span>
+                    </div>
+                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800">
+                        <span class="text-xs text-slate-400 font-semibold block">Soberano / Gobernante:</span>
+                        <span class="text-sm font-bold text-amber-300">${cap.leader}</span>
+                    </div>
+                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800">
+                        <span class="text-xs text-slate-400 font-semibold block">Provincia / Territorio:</span>
+                        <span class="text-sm font-bold text-slate-200">${cap.provinceName}</span>
+                    </div>
+                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800">
+                        <span class="text-xs text-slate-400 font-semibold block">Lema Faccionario:</span>
+                        <span class="text-sm font-bold italic ${isAlliance ? 'text-blue-300' : 'text-red-300'}">${factionObj.motto}</span>
+                    </div>
+                </div>
+
+                <!-- Lore Section -->
+                <div class="space-y-2 bg-slate-950/50 p-4 rounded-xl border border-slate-800/80">
+                    <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-book-bookmark"></i> Historia e Importancia Estratégica
+                    </h3>
+                    <p class="text-xs leading-relaxed text-slate-300">${cap.lore}</p>
+                </div>
+
+                ${raceObj ? `
+                <div class="mt-4 pt-3 border-t border-slate-800 flex justify-end">
+                    <button onclick="openRaceLeaderModal('${raceObj.id}')" class="px-4 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/50 rounded-lg text-xs font-bold transition flex items-center gap-2">
+                        <i class="fa-solid fa-id-card"></i> Ver Ficha Completa del Jefe y Raza
+                    </button>
+                </div>
+                ` : ''}
+            `;
+
+            showModal();
+        }
+
+        function openRaceLeaderModal(raceId) {
+            const race = DATA.races.find(r => r.id === raceId);
+            if (!race) return;
+
+            const isAlliance = race.faction === 'alliance';
+            const factionObj = DATA.factions[race.faction];
+            const cap = DATA.capitals.find(c => c.id === race.capitalId);
+
+            const content = document.getElementById('modal-content');
+            content.innerHTML = `
+                <!-- Leader Header Card -->
+                <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 p-4 rounded-xl bg-slate-950 border ${isAlliance ? 'border-blue-500/50' : 'border-red-500/50'} mb-4">
+                    <div class="relative flex-shrink-0">
+                        <img src="${race.avatarUrl}" alt="${race.leader}" class="w-24 h-24 rounded-full object-cover border-4 ${isAlliance ? 'border-blue-500' : 'border-red-500'} shadow-xl">
+                        <span class="absolute bottom-0 right-0 w-8 h-8 rounded-full ${isAlliance ? 'bg-blue-600' : 'bg-red-600'} text-white text-sm flex items-center justify-center border-2 border-slate-900">
+                            <i class="fa-solid ${factionObj.crest}"></i>
+                        </span>
+                    </div>
+
+                    <div class="text-center sm:text-left space-y-1">
+                        <span class="text-xs uppercase tracking-widest font-bold px-2.5 py-0.5 rounded ${factionObj.badgeClass}">
+                            Pueblo: ${race.name}
+                        </span>
+                        <h2 class="text-2xl font-bold text-amber-300">${race.leader}</h2>
+                        <p class="text-xs text-slate-400 font-semibold">${race.leaderTitle}</p>
+                        <div class="pt-1 flex flex-wrap gap-2 justify-center sm:justify-start">
+                            <span class="text-[11px] bg-slate-800 text-amber-200 px-2 py-0.5 rounded border border-slate-700">
+                                <strong>Clase del Jefe:</strong> ${race.leaderClass}
+                            </span>
+                            ${cap ? `
+                            <span class="text-[11px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">
+                                <strong>Capital:</strong> ${cap.name}
+                            </span>` : ''}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Racial Traits -->
+                <div class="mb-4 bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+                    <span class="text-xs font-bold text-amber-400 uppercase tracking-wider block mb-1">
+                        <i class="fa-solid fa-bolt text-yellow-400 mr-1"></i> Rasgos Raciales Principales:
+                    </span>
+                    <span class="text-xs text-slate-200">${race.racialTrait}</span>
+                </div>
+
+                <!-- Race Lore -->
+                <div class="space-y-2 bg-slate-950/50 p-4 rounded-xl border border-slate-800/80 mb-3">
+                    <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-users"></i> Historia General de la Raza
+                    </h3>
+                    <p class="text-xs leading-relaxed text-slate-300">${race.raceDescription}</p>
+                </div>
+
+                <!-- Leader Lore -->
+                <div class="space-y-2 bg-slate-950/50 p-4 rounded-xl border border-slate-800/80">
+                    <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-crown text-amber-500"></i> Biografía del Soberano
+                    </h3>
+                    <p class="text-xs leading-relaxed text-slate-300">${race.leaderLore}</p>
+                </div>
+            `;
+
+            showModal();
+        }
+
+        function openProvinceModal(provinceId) {
+            const prov = DATA.provinces.find(p => p.id === provinceId);
+            if (!prov) return;
+
+            const isAlliance = prov.faction === 'alliance';
+            const factionObj = DATA.factions[prov.faction];
+            const cap = DATA.capitals.find(c => c.id === prov.capitalId);
+
+            const content = document.getElementById('modal-content');
+            content.innerHTML = `
+                <div class="p-2">
+                    <div class="flex justify-between items-center pb-3 border-b border-slate-800 mb-4">
+                        <div>
+                            <span class="text-xs uppercase font-bold px-2 py-0.5 rounded ${factionObj.badgeClass}">
+                                Territorio bajo control de la ${factionObj.name}
+                            </span>
+                            <h2 class="text-2xl font-bold text-amber-300 mt-1">${prov.name}</h2>
+                        </div>
+                        <div class="w-12 h-12 rounded-full ${isAlliance ? 'bg-blue-600/30 border border-blue-500' : 'bg-red-600/30 border border-red-500'} flex items-center justify-center text-xl text-amber-300">
+                            <i class="fa-solid ${factionObj.crest}"></i>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800 flex justify-between items-center">
+                            <span class="text-xs text-slate-400 font-semibold">Continente:</span>
+                            <span class="text-xs font-bold text-amber-200">${prov.continent === 'kalimdor' ? 'Kalimdor' : 'Reinos del Este'}</span>
+                        </div>
+
+                        <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800 flex justify-between items-center">
+                            <span class="text-xs text-slate-400 font-semibold">Capital de la Zona:</span>
+                            <span class="text-xs font-bold text-slate-200">${cap ? cap.name : 'Ninguna (Zona silvestre / rural)'}</span>
+                        </div>
+
+                        <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800">
+                            <span class="text-xs text-slate-400 font-semibold block mb-1">Color de Alineación Territorial:</span>
+                            <div class="flex items-center gap-2">
+                                <span class="w-4 h-4 rounded ${isAlliance ? 'bg-blue-600' : 'bg-red-600'}"></span>
+                                <span class="text-xs text-slate-300">${isAlliance ? 'Azul (Poblaciones Alianza)' : 'Rojo (Baluarte Horda)'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${cap ? `
+                    <div class="mt-5 pt-3 border-t border-slate-800 flex justify-end">
+                        <button onclick="openCapitalModal('${cap.id}')" class="px-4 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/50 rounded-lg text-xs font-bold transition flex items-center gap-2">
+                            <i class="fa-solid fa-landmark"></i> Explorar Capital ${cap.name}
+                        </button>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+
+            showModal();
+        }
+
+        function showModal() {
+            const backdrop = document.getElementById('modal-backdrop');
+            const box = document.getElementById('modal-box');
+            backdrop.classList.remove('hidden');
+            setTimeout(() => {
+                backdrop.classList.remove('opacity-0');
+                box.classList.remove('scale-95');
+                box.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            playSoundEffect('click');
+            const backdrop = document.getElementById('modal-backdrop');
+            const box = document.getElementById('modal-box');
+            backdrop.classList.add('opacity-0');
+            box.classList.remove('scale-100');
+            box.classList.add('scale-95');
+            setTimeout(() => {
+                backdrop.classList.add('hidden');
+            }, 300);
+        }
+
+        // Close modal when clicking backdrop
+        document.getElementById('modal-backdrop').addEventListener('click', (e) => {
+            if (e.target.id === 'modal-backdrop') closeModal();
+        });
+    </script>
+</body>
+</html>
